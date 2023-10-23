@@ -1,2 +1,2 @@
 USE cd;
-SELECT * from facilities;
+SELECT * FROM facilities; /*выводим все данные из таблицы*/
