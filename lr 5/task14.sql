@@ -1,14 +1,5 @@
-/*В этом запросе мы вычисляем общее количество зарезервированных слотов и выводим объект (facid) с наибольшим количеством зарезервированных слотов*/
 USE cd;
-WITH SlotCounts AS (
-    SELECT facid, 
-           SUM(slots) AS TotalSlots
-    FROM bookings
-    GROUP BY facid
-)
-SELECT f.facid AS FacilityID,
-       f.facility AS FacilityName,
-       sc.TotalSlots AS TotalReservedSlots
-FROM facilities f
-JOIN SlotCounts sc ON f.facid = sc.facid
-WHERE sc.TotalSlots = (SELECT MAX(TotalSlots) FROM SlotCounts);
+SELECT DISTINCT facid, slots FROM (SELECT facid, slots, RANK() OVER (ORDER BY slots DESC) as maxrank FROM bookings) ranked_bookings
+/*Выбирает уникальные значения facid и количество слотов (slots) из подзапроса*/
+/*В подзапросе выбирает facid, slots и выставляет их по убыванию количества слотов с помощью функции RANK() OVER (ORDER BY slots DESC) с названием maxrank.*/
+WHERE maxrank = 1; /*Фильтрует результаты, оставляя только те записи, у которых maxrank равен 1.*/

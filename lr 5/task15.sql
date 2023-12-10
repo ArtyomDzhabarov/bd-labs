@@ -1,19 +1,10 @@
-/*Мы объединяем таблицы "members" и "bookings", вычисляя общее количество часов бронирования для каждого участника или гостя, а затем сортируем результаты по статусу, количеству часов и фамилии участника*/
 USE cd;
-SELECT
-    CONCAT(m.firstname, ' ', m.surname) AS member_name,
-    ROUND(SUM(TIMESTAMPDIFF(HOUR, b.starttime, TIMESTAMPADD(HOUR, 1, b.starttime))), -1) AS rounded_hours,
-    CASE
-        WHEN mb.memid IS NOT NULL THEN 'Участник'
-        ELSE 'Гость'
-    END AS status
-FROM
-    bookings b
-LEFT JOIN
-    members m ON b.memid = m.memid
-LEFT JOIN
-    members mb ON b.memid = mb.memid AND mb.memid <> 0
-GROUP BY
-    b.memid
-ORDER BY
-    status, rounded_hours DESC, m.surname, m.firstname;
+SELECT CONCAT(m.firstname, ' ', m.surname) AS fiomember, ROUND(SUM(COALESCE(b.slots / 2, 0)), -1) as 'Часы', 
+/*Выбирает объединенные firstname и surname, округленную сумму слотов (полчасовые интервалы) с помощью функции ROUND*/
+RANK() OVER (ORDER BY ROUND(SUM(COALESCE(b.slots / 2, 0)), -1)) AS ranks
+/*выставляет результаты по этой округленной сумме.*/
+FROM members m
+LEFT JOIN bookings b ON m.memid = b.memid GROUP BY m.memid ORDER BY m.surname, m.firstname;
+/*Присоединяет таблицы members и bookings по memid.*/
+/*Группирует результаты по memid.*/
+/*Сортирует результаты по surname (фамилии) и firstname (имени).*/

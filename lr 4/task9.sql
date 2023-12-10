@@ -1,6 +1,8 @@
 USE cd;
-SELECT * from members
-where memid not in(select distinct memid from bookings);
+SELECT * FROM members
+WHERE memid NOT  IN (SELECT memid FROM bookings);
+/*Выбирает всех участников из таблицы "members", у которых нет бронирований*/
 DELETE FROM members
-WHERE memid not in (select memid from bookings);
-select * from members where memid = 37;
+WHERE memid NOT IN (SELECT memid FROM bookings);
+/*Удаляет всех участников из таблицы "members", у которых нет бронирований*/
+SELECT * FROM members WHERE memid = 37; /*Выполняет запрос на выбор данных из таблицы "members", где memid=37*/

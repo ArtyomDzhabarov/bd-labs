@@ -1,3 +1,3 @@
-/*Этот запрос возвращает общее количество бронирований (записей) из таблицы "bookings"*/
 USE cd;
-SELECT COUNT(memid) FROM bookings;
+/*вычисляет количество уникальных memid в таблице "bookings". Применяем функцию COUNT для подсчета уникальных значений*/
+SELECT COUNT(DISTINCT memid) FROM bookings;

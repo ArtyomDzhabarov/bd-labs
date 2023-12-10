@@ -1,20 +1,24 @@
-/*Этот запрос вычисляет количество уникальных бронирований (bookingscount) для каждого члена в зависимости от уровня дохода объекта бронирования. Для этого мы используем условные выражения для определения уровня дохода (incomegroup) и соединяем таблицы "members", "bookings" и "facilities". Затем результаты группируются по memid, incomegroup и facilityname*/
 USE cd;
-SELECT DISTINCT
-    COUNT(b.bookid) AS bookings_count,
-    CASE
-        WHEN f.membercost + f.guestcost >= 30 THEN 'Высокие доходы'
-        WHEN f.membercost + f.guestcost >= 20 THEN 'Средние доходы'
-        ELSE 'Низкие доходы'
-    END AS income_group,
-    f.facility AS facility_name
-FROM
-    members m 
-LEFT JOIN
-    bookings b ON m.memid = b.memid
-LEFT JOIN
-    facilities f ON b.facid = f.facid
-GROUP BY
-    m.memid, income_group, facility_name
-ORDER BY
-    income_group, facility_name;
+SELECT facility, 
+CASE 
+  WHEN group1 = 1 THEN 'Высокий доход'
+  WHEN group1 = 2 THEN 'Средний доход'
+  WHEN group1 = 3 THEN 'Низкий доход'
+END AS group1
+/*В этой части запроса выбирается название объекта (facility) и используется конструкция CASE
+для создания категорий дохода (высокий, средний, низкий) на основе данных колонки group1.*/
+FROM (
+  SELECT f.facility, SUM(IF(b.memid = 0, f.guestcost * b.slots, f.membercost * b.slots)) AS revenue,
+  /*Здесь мы выбираем название объекта (facility) и считаем общую выручку (revenue) для каждого объекта. 
+  Общая выручка рассчитывается как сумма стоимости бронирования, умноженной на количество слотов.
+  Если участник (memid) равен 0, то используется стоимость для гостя (guestcost), в противном случае используется стоимость члена клуба (membercost).*/
+  NTILE(3) OVER (ORDER BY SUM(IF(b.memid = 0, f.guestcost * b.slots, f.membercost * b.slots))) AS group1
+  /*используем функцию NTILE, чтобы разделить данные на три равные части на основе суммы выручки для каждого объекта (сортируем в порядке возрастания выручки). 
+  Результат этого разделения записывается в колонку group1. Функция NTILE используется для разделения данных */
+  FROM facilities f INNER JOIN bookings b ON f.facid = b.facid
+  /*Здесь мы выполняем объединение таблиц facilities и bookings по их общему полю facid.*/
+  GROUP BY f.facility
+  /*Мы группируем результаты по названию объекта (facility) для подсчета общей выручки по каждому объекту.*/
+) as temporary_table /*Здесь мы используем данные из внутреннего запроса в качестве временной таблицы, чтобы дальше работать с этими данными.*/
+ORDER BY group1, facility; /*упорядочивание результатов в порядке возрастания значения group1 (категория дохода) и названия объекта (facility).*/
+
